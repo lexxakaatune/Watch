@@ -1,0 +1,58 @@
+const Video = require('../models/Video');
+const { s3, bucket } = require('../config/s3');
+const { videoQueue } = require('../utils/queue');
+const { v4: uuidv4 } = require('uuid');
+
+exports.getUploadUrl = async (req, res, next) => {
+  try {
+    const { filename, contentType } = req.body;
+    const key = `uploads/${req.user.id}/${uuidv4()}-${filename}`;
+    const params = {
+      Bucket: bucket,
+      Key: key,
+      ContentType: contentType,
+      Expires: 300
+    };
+    const uploadUrl = await s3.getSignedUrlPromise('putObject', params);
+    res.json({ success: true, data: { uploadUrl, key } });
+  } catch (err) { next(err); }
+};
+
+exports.confirmUpload = async (req, res, next) => {
+  try {
+    const { key, title, description, visibility, tags, category, isShort } = req.body;
+    const videoUrl = `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    const thumbnail = `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/thumbnails/${key.split('/').pop().replace(/\.[^/.]+$/, '')}.jpg`;
+    const video = await Video.create({
+      title,
+      description,
+      thumbnail,
+      videoUrl,
+      creator: req.user.id,
+      category: category || 'general',
+      tags: tags || [],
+      visibility: visibility || 'public',
+      isShort: isShort || false,
+      status: 'processing'
+    });
+    videoQueue.add('process-video', {
+      videoId: video._id.toString(),
+      key,
+      userId: req.user.id
+    }, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 5000 },
+      removeOnComplete: true
+    });
+    res.json({ success: true, data: { video } });
+  } catch (err) { next(err); }
+};
+
+exports.getUploadStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const video = await Video.findById(id).select('status processingProgress hlsUrl resolutions');
+    if (!video) return res.status(404).json({ success: false, error: 'Video not found' });
+    res.json({ success: true, data: { status: video.status, progress: video.processingProgress, hlsUrl: video.hlsUrl, resolutions: video.resolutions } });
+  } catch (err) { next(err); }
+};
