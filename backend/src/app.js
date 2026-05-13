@@ -42,6 +42,8 @@ app.use('/api/moderator', require('./routes/moderator'));
 app.use('/api/creator', require('./routes/creator'));
 app.use('/api/superadmin', require('./routes/superadmin'));
 
+console.log('Routes loaded. Auth route:', require('./routes/auth'));
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
