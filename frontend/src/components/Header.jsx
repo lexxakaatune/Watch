@@ -1,153 +1,314 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
-import { logoutUser, toggleTheme, toggleSidebar, setSearchQuery } from '../redux/store'
+import { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
+import { logout } from '../store/slices/authSlice';
+import { toggleSidebar } from '../store/slices/uiSlice';
+import {
+  LogoIcon, SearchIcon, MenuIcon, SunIcon, MoonIcon,
+  BellIcon, MessageIcon, UploadIcon, UserIcon, LogoutIcon,
+  DashboardIcon, SettingsIcon, ChevronDownIcon, CloseIcon
+} from './Icons';
 
 export default function Header() {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const { user, isAuthenticated } = useSelector(state => state.auth)
-  const { mode } = useSelector(state => state.theme)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
-  const [menuOpen, setMenuOpen] = useState(false)
+  const { user, isAuthenticated } = useAuth();
+  const { theme, toggle } = useTheme();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const profileRef = useRef(null);
 
-  const handleLogout = async () => {
-    await dispatch(logoutUser())
-    navigate('/')
-    setMenuOpen(false)
-  }
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e) => {
-    e.preventDefault()
-    if (searchValue.trim()) {
-      dispatch(setSearchQuery(searchValue))
-      navigate(`/search?q=${encodeURIComponent(searchValue)}`)
-      setSearchOpen(false)
-      setSearchValue('')
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchOpen(false);
+      setSearchQuery('');
     }
-  }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setProfileOpen(false);
+    navigate('/');
+  };
 
   const getDashboardLink = () => {
-    if (!user) return null
+    if (!user) return '/login';
     switch (user.role) {
-      case 'superadmin': return '/superadmin/dashboard'
-      case 'admin': return '/admin/dashboard'
-      case 'moderator': return '/moderator/dashboard'
-      case 'creator': return '/creator/dashboard'
-      default: return '/dashboard'
+      case 'superadmin': return '/superadmin';
+      case 'admin': return '/admin';
+      case 'moderator': return '/moderator';
+      case 'creator': return '/creator';
+      default: return '/dashboard';
     }
-  }
+  };
 
-  const dashboardLink = getDashboardLink()
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50" style={{ height: 'var(--header-height)', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-      <nav className="container h-full flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button 
-            className="md:hidden btn-ghost p-2" 
-            onClick={() => dispatch(toggleSidebar())}
-            aria-label="Toggle menu"
+    <header className="fixed top-0 left-0 right-0 z-50" style={{ height: 'var(--header-height)', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}>
+      <div className="container h-full flex items-center justify-between gap-4">
+        {/* Left */}
+        <div className="flex items-center gap-3">
+          <button
+            className="p-2 rounded-md hover:bg-[var(--bg-secondary)] transition-colors lg:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menu"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            <MenuIcon size={22} />
           </button>
-          <Link to="/" className="flex items-center gap-2">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="16" r="14" stroke="#22C55E" strokeWidth="2.5" fill="none"/>
-              <polygon points="12,10 24,16 12,22" fill="#22C55E"/>
-            </svg>
-            <span className="text-xl font-bold" style={{ color: 'var(--primary)' }}>WATCH</span>
+          <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <LogoIcon size={32} />
+            <span className="font-bold text-lg hidden sm:block" style={{ color: 'var(--text-primary)' }}>Watch</span>
           </Link>
         </div>
 
-        <form onSubmit={handleSearch} className={`flex-1 max-w-xl ${searchOpen ? 'flex absolute left-0 right-0 top-full p-4 bg-[var(--surface)] border-b border-[var(--border)]' : 'hidden md:flex'}`}>
-          <div className="relative w-full">
+        {/* Center - Search */}
+        <div className="flex-1 max-w-xl hidden md:block">
+          <form onSubmit={handleSearch} className="relative">
             <input
-              type="search"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search videos, creators..."
-              className="w-full px-4 py-2 pl-10 rounded-full bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              className="w-full py-2.5 pl-4 pr-12 rounded-full text-sm"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
             />
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          </div>
-        </form>
+            <button
+              type="submit"
+              className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <SearchIcon size={18} />
+            </button>
+          </form>
+        </div>
 
-        <div className="flex items-center gap-2">
-          <button 
-            className="md:hidden btn-ghost p-2" 
-            onClick={() => setSearchOpen(!searchOpen)}
-            aria-label="Search"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          </button>
+        {/* Mobile Search Toggle */}
+        <button
+          className="md:hidden p-2 rounded-md hover:bg-[var(--bg-secondary)]"
+          onClick={() => setSearchOpen(!searchOpen)}
+        >
+          <SearchIcon size={22} />
+        </button>
 
-          <button 
-            className="btn-ghost p-2 rounded-full" 
-            onClick={() => dispatch(toggleTheme())}
+        {/* Right */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={toggle}
+            className="p-2 rounded-md hover:bg-[var(--bg-secondary)] transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
             aria-label="Toggle theme"
           >
-            {mode === 'dark' ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            )}
+            {theme === 'dark' ? <SunIcon size={20} /> : <MoonIcon size={20} />}
           </button>
 
           {isAuthenticated ? (
-            <div className="relative">
-              <button 
-                className="flex items-center gap-2 p-1 rounded-full hover:bg-[var(--surface-hover)] transition-colors"
-                onClick={() => setMenuOpen(!menuOpen)}
+            <>
+              <Link
+                to="/upload"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                style={{ color: 'var(--text-primary)' }}
               >
-                <img 
-                  src={user?.avatar || '/default-avatar.png'} 
-                  alt={user?.username} 
-                  className="w-8 h-8 rounded-full object-cover bg-[var(--bg-secondary)]"
-                />
-                <span className="hidden md:block text-sm font-medium text-[var(--text-primary)]">{user?.username}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="hidden md:block text-[var(--text-muted)]"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
+                <UploadIcon size={18} />
+                <span className="hidden lg:inline">Upload</span>
+              </Link>
 
-              {menuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg z-50 overflow-hidden">
-                    <div className="p-3 border-b border-[var(--border)]">
-                      <p className="font-semibold text-sm text-[var(--text-primary)]">{user?.username}</p>
-                      <p className="text-xs text-[var(--text-muted)]">{user?.email}</p>
-                      <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded-full bg-[var(--primary)] text-white font-medium capitalize">{user?.role}</span>
+              <Link
+                to="/messages"
+                className="p-2 rounded-md hover:bg-[var(--bg-secondary)] transition-colors relative"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                <MessageIcon size={20} />
+              </Link>
+
+              <Link
+                to="/notifications"
+                className="p-2 rounded-md hover:bg-[var(--bg-secondary)] transition-colors relative"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                <BellIcon size={20} />
+              </Link>
+
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 p-1.5 rounded-full hover:bg-[var(--bg-secondary)] transition-colors"
+                >
+                  <img
+                    src={user?.avatar || '/default-avatar.png'}
+                    alt={user?.username}
+                    className="w-8 h-8 rounded-full object-cover"
+                    style={{ background: 'var(--bg-tertiary)' }}
+                  />
+                  <ChevronDownIcon size={16} style={{ color: 'var(--text-muted)' }} />
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl overflow-hidden shadow-lg"
+                    style={{ background: 'var(--card-surface)', border: '1px solid var(--border-color)' }}>
+                    <div className="p-3 border-b" style={{ borderColor: 'var(--border-color)' }}>
+                      <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{user?.username}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{user?.email}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wide"
+                        style={{
+                          background: user?.role === 'superadmin' ? 'rgba(168,85,247,0.15)' :
+                            user?.role === 'admin' ? 'rgba(59,130,246,0.15)' :
+                              user?.role === 'moderator' ? 'var(--warning-light)' :
+                                user?.role === 'creator' ? 'var(--primary-light)' :
+                                  'var(--bg-tertiary)',
+                          color: user?.role === 'superadmin' ? '#A855F7' :
+                            user?.role === 'admin' ? '#3B82F6' :
+                              user?.role === 'moderator' ? 'var(--warning)' :
+                                user?.role === 'creator' ? 'var(--primary)' :
+                                  'var(--text-muted)'
+                        }}>
+                        {user?.role}
+                      </span>
                     </div>
                     <div className="py-1">
-                      {dashboardLink && (
-                        <Link to={dashboardLink} className="block px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]" onClick={() => setMenuOpen(false)}>
-                          Dashboard
-                        </Link>
-                      )}
-                      <Link to={`/profile/${user?.username}`} className="block px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]" onClick={() => setMenuOpen(false)}>
-                        My Profile
+                      <Link to={`/profile/${user?.username}`} onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[var(--bg-secondary)] transition-colors"
+                        style={{ color: 'var(--text-primary)' }}>
+                        <UserIcon size={16} /> Profile
                       </Link>
-                      <Link to="/settings" className="block px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]" onClick={() => setMenuOpen(false)}>
-                        Settings
+                      <Link to={getDashboardLink()} onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[var(--bg-secondary)] transition-colors"
+                        style={{ color: 'var(--text-primary)' }}>
+                        <DashboardIcon size={16} /> Dashboard
                       </Link>
-                      <hr className="my-1 border-[var(--border)]" />
-                      <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-[var(--error)] hover:bg-[var(--error-bg)]">
-                        Logout
+                      <Link to="/settings" onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[var(--bg-secondary)] transition-colors"
+                        style={{ color: 'var(--text-primary)' }}>
+                        <SettingsIcon size={16} /> Settings
+                      </Link>
+                      <div className="border-t my-1" style={{ borderColor: 'var(--border-color)' }}></div>
+                      <button onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-[var(--bg-secondary)] transition-colors text-left"
+                        style={{ color: 'var(--error)' }}>
+                        <LogoutIcon size={16} /> Sign Out
                       </button>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
+                )}
+              </div>
+            </>
           ) : (
             <div className="flex items-center gap-2">
-              <Link to="/login" className="btn btn-sm btn-ghost">Sign In</Link>
-              <Link to="/register" className="btn btn-sm btn-primary hidden sm:inline-flex">Sign Up</Link>
+              <Link to="/login" className="px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-[var(--bg-secondary)]"
+                style={{ color: 'var(--text-primary)' }}>
+                Sign In
+              </Link>
+              <Link to="/register" className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                style={{ background: 'var(--primary)', color: '#fff' }}>
+                Get Started
+              </Link>
             </div>
           )}
         </div>
-      </nav>
+      </div>
+
+      {/* Mobile Search Bar */}
+      {searchOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 p-3" style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}>
+          <form onSubmit={handleSearch} className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              autoFocus
+              className="w-full py-2.5 pl-4 pr-12 rounded-full text-sm"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+            />
+            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }}>
+              <SearchIcon size={18} />
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 top-[var(--header-height)] z-40" style={{ background: 'var(--bg-primary)' }}>
+          <div className="p-4 flex flex-col gap-1">
+            <Link to="/" onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+              style={{ color: isActive('/') ? 'var(--primary)' : 'var(--text-primary)', background: isActive('/') ? 'var(--primary-light)' : 'transparent' }}>
+              <span className="text-lg">🏠</span> Home
+            </Link>
+            <Link to="/search" onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+              style={{ color: 'var(--text-primary)' }}>
+              <span className="text-lg">🔍</span> Search
+            </Link>
+            {isAuthenticated && (
+              <>
+                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+                  style={{ color: 'var(--text-primary)' }}>
+                  <span className="text-lg">📊</span> Dashboard
+                </Link>
+                <Link to="/upload" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+                  style={{ color: 'var(--text-primary)' }}>
+                  <span className="text-lg">📤</span> Upload
+                </Link>
+                <Link to="/messages" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+                  style={{ color: 'var(--text-primary)' }}>
+                  <span className="text-lg">💬</span> Messages
+                </Link>
+                <Link to="/notifications" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+                  style={{ color: 'var(--text-primary)' }}>
+                  <span className="text-lg">🔔</span> Notifications
+                </Link>
+                <Link to="/settings" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+                  style={{ color: 'var(--text-primary)' }}>
+                  <span className="text-lg">⚙️</span> Settings
+                </Link>
+                <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-left"
+                  style={{ color: 'var(--error)' }}>
+                  <span className="text-lg">🚪</span> Sign Out
+                </button>
+              </>
+            )}
+            {!isAuthenticated && (
+              <>
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+                  style={{ color: 'var(--text-primary)' }}>
+                  <span className="text-lg">🔑</span> Sign In
+                </Link>
+                <Link to="/register" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
+                  style={{ color: 'var(--primary)' }}>
+                  <span className="text-lg">✨</span> Get Started
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </header>
-  )
+  );
 }

@@ -1,5 +1,6 @@
 {
   "name": "watch-frontend",
+  "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -13,7 +14,8 @@
     "react-router-dom": "^6.20.0",
     "@reduxjs/toolkit": "^2.0.0",
     "react-redux": "^9.0.0",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "hls.js": "^1.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
