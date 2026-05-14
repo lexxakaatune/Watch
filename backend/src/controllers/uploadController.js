@@ -21,8 +21,8 @@ exports.getUploadUrl = async (req, res, next) => {
 exports.confirmUpload = async (req, res, next) => {
   try {
     const { key, title, description, visibility, tags, category, isShort } = req.body;
-    const videoUrl = `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    const thumbnail = `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/thumbnails/${key.split('/').pop().replace(/\.[^/.]+$/, '')}.jpg`;
+    const videoUrl = `${process.env.B2_ENDPOINT}/${bucket}/${key}`;
+    const thumbnail = `${process.env.B2_ENDPOINT}/${bucket}/thumbnails/${key.split('/').pop().replace(/\.[^/.]+$/, '')}.jpg`;
     const video = await Video.create({
       title,
       description,
