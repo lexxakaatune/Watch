@@ -13,6 +13,7 @@ if (savedTheme) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <div> Main jsx page </div>
     <App />
   </React.StrictMode>
 );
