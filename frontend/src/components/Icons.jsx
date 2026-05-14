@@ -542,7 +542,7 @@ const Icons = {
   // Theme
   SunIcon, MoonIcon,
   // Brand
-  LogoIcon, AlertIcon, InfoIcon, XCircleIcon, CircleCheckIcon,  MenuIcon,  MessageIcon,  LogoutIcon,  ChevronDownIcon ,  CloseIcon 
+  LogoIcon, AlertIcon, InfoIcon, XCircleIcon, CheckCircleIcon,  MenuIcon,  MessageIcon,  LogoutIcon,  ChevronDownIcon ,  CloseIcon 
 };
 
 export default Icons;
