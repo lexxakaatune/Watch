@@ -14,7 +14,6 @@ if (savedTheme) {
 ReactDOM.createRoot(document.getElementById('root')).render(
    <div> Main jsx page </div>
   <React.StrictMode>
-    <div> Main jsx page div 3 </div>
     <App />
   </React.StrictMode>
 );
