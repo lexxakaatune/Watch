@@ -40,6 +40,8 @@ export default function UploadPage() {
   };
 
   const handleUpload = async () => {
+    alert('uploadAPI type: ' + typeof uploadAPI);
+    alert('uploadAPI.getUploadUrl type: ' + typeof uploadAPI?.getUploadUrl);
     if (!file || !form.title) {
       setAlert({ type: 'error', message: 'Please select a file and enter a title' });
       return;

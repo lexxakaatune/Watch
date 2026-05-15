@@ -296,13 +296,8 @@ export default function Header() {
               <>
                 <Link to="/login" onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
-                  style={{ color: 'var(--text-primary)' }}>
-                  <span className="text-lg">🔑</span> Sign In
-                </Link>
-                <Link to="/register" onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium"
                   style={{ color: 'var(--primary)' }}>
-                  <span className="text-lg">✨</span> Get Started
+                  <span className="text-lg">🔑</span> Sign In
                 </Link>
               </>
             )}
