@@ -39,7 +39,7 @@ export default function UploadPage() {
     if (!form.title) setForm(prev => ({ ...prev, title: selectedFile.name.replace(/\.[^/.]+$/, '') }));
   };
 
-  const handleUpload = async () => {
+/*  const handleUpload = async () => {
     alert('uploadAPI type: ' + typeof uploadAPI);
     alert('uploadAPI.getUploadUrl type: ' + typeof uploadAPI?.getUploadUrl);
     if (!file || !form.title) {
@@ -97,6 +97,56 @@ export default function UploadPage() {
       setUploading(false);
     }
   };
+*/
+
+const handleUpload = async () => {
+  if (!file || !form.title) {
+    setAlert({ type: 'error', message: 'Please select a file and enter a title' });
+    return;
+  }
+  
+  window.debugStep1 = 'starting';
+  
+  try {
+    window.debugStep2 = 'getting url';
+    const urlRes = await uploadAPI.getUploadUrl({
+      filename: file.name,
+      contentType: file.type,
+    });
+    
+    window.debugStep3 = 'got url: ' + JSON.stringify(urlRes.data);
+    const { uploadUrl, key } = urlRes.data.data;
+    
+    window.debugStep4 = 'uploading to: ' + uploadUrl.substring(0, 50);
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: file,
+    });
+    
+    window.debugStep5 = 's3 status: ' + uploadRes.status;
+    if (!uploadRes.ok) {
+      throw new Error('S3 failed: ' + uploadRes.status);
+    }
+    
+    window.debugStep6 = 'confirming';
+    await uploadAPI.confirmUpload({
+      key,
+      title: form.title,
+      description: form.description,
+      category: form.category,
+      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+      visibility: form.visibility,
+      duration: 0,
+    });
+    
+    window.debugStep7 = 'done';
+    setAlert({ type: 'success', message: 'Upload successful!' });
+    
+  } catch (err) {
+    window.debugError = err.message;
+    setAlert({ type: 'error', message: err.message });
+  }
+};
 
   return (
     <main className="upload-page">
