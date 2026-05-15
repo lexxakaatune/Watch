@@ -15,19 +15,6 @@ export default function UploadPage() {
   const [alert, setAlert] = useState(null);
   const inputRef = useRef(null);
 
-useEffect(() => {
-  import('../api/test').then(({ testUpload }) => {
-    testUpload().then(result => {
-      console.log('Test result:', JSON.stringify(result));
-      // On mobile, show as alert instead of console
-      if (!result.success) {
-        setAlert({ type: 'error', message: 'API test failed: ' + JSON.stringify(result) });
-      }
-    });
-  });
-}, []);
-
-
   const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
