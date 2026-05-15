@@ -55,6 +55,9 @@ export default function UploadPage() {
       });
       const { uploadUrl, key } = urlRes.data.data;
 
+      alert('Upload URL: ' + uploadUrl);
+
+
       // Step 2: Upload to S3
       await fetch(uploadUrl, {
         method: 'PUT',
