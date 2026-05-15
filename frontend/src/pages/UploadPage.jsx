@@ -150,6 +150,34 @@ const handleUpload = async () => {
   }
 };
 */
+const handleUpload = async () => {
+  if (!file || !form.title) {
+    setAlert({ type: 'error', message: 'Please select a file and enter a title' });
+    return;
+  }
+  setUploading(true);
+  setProgress(0);
+
+  const formData = new FormData();
+  formData.append('video', file);
+  formData.append('title', form.title);
+  formData.append('description', form.description);
+  formData.append('category', form.category);
+  formData.append('tags', form.tags);
+  formData.append('visibility', form.visibility);
+
+  try {
+    const res = await uploadAPI.uploadDirect(formData);
+    setProgress(100);
+    setAlert({ type: 'success', message: 'Upload successful! Processing...' });
+    setTimeout(() => navigate('/creator'), 2000);
+  } catch (err) {
+    setAlert({ type: 'error', message: err.response?.data?.error || err.message || 'Upload failed' });
+  } finally {
+    setUploading(false);
+  }
+};
+
 
   return (
     <main className="upload-page">
