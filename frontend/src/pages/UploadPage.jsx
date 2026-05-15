@@ -121,6 +121,7 @@ const handleUpload = async () => {
     const uploadRes = await fetch(uploadUrl, {
       method: 'PUT',
       body: file,
+      headers: { 'Content-Type': file.type }
     });
     
     window.debugStep5 = 's3 status: ' + uploadRes.status;

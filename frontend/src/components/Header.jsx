@@ -211,13 +211,9 @@ export default function Header() {
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <Link to="/login" className="px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-[var(--bg-secondary)]"
-                style={{ color: 'var(--text-primary)' }}>
-                Sign In
-              </Link>
-              <Link to="/register" className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              <Link to="/login" className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 style={{ background: 'var(--primary)', color: '#fff' }}>
-                Get Started
+                Sign In
               </Link>
             </div>
           )}
