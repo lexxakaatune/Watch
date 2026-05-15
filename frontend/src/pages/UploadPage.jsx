@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { uploadAPI } from '../api/upload';
+import uploadAPI from '../api/upload';
 import { UploadIcon, FilmIcon, ImageIcon, XIcon, CheckIcon } from '../components/Icons';
 import Alert from '../components/Alert';
 
