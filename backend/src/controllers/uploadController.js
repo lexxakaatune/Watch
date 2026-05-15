@@ -2,6 +2,56 @@ const Video = require('../models/Video');
 const { s3, bucket } = require('../config/s3');
 const { videoQueue } = require('../utils/queue');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+
+exports.directUpload = async (req, res, next) => {
+  try {
+    const file = req.file;
+    if (!file) return res.status(400).json({ success: false, error: 'No video file provided' });
+    
+    const key = `uploads/${req.user.id}/${uuidv4()}-${file.originalname}`;
+    
+    await s3.putObject({
+      Bucket: bucket,
+      Key: key,
+      Body: fs.createReadStream(file.path),
+      ContentType: file.mimetype,
+    }).promise();
+    
+    fs.unlinkSync(file.path);
+    
+    const videoUrl = `${process.env.B2_ENDPOINT}/${bucket}/${key}`;
+    const thumbnail = `${process.env.B2_ENDPOINT}/${bucket}/thumbnails/${file.originalname.replace(/\.[^/.]+$/, '')}.jpg`;
+    
+    const video = await Video.create({
+      title: req.body.title,
+      description: req.body.description || '',
+      thumbnail,
+      videoUrl,
+      creator: req.user.id,
+      category: req.body.category || 'general',
+      tags: req.body.tags?.split(',').map(t => t.trim()).filter(Boolean) || [],
+      visibility: req.body.visibility || 'public',
+      status: 'processing'
+    });
+    
+    videoQueue.add('process-video', {
+      videoId: video._id.toString(),
+      key,
+      userId: req.user.id
+    }, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 5000 },
+      removeOnComplete: true
+    });
+    
+    res.json({ success: true, data: { video } });
+  } catch (err) { 
+    if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    next(err); 
+  }
+};
+
 
 exports.getUploadUrl = async (req, res, next) => {
   try {

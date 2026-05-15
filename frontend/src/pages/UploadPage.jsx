@@ -99,6 +99,7 @@ export default function UploadPage() {
   };
 */
 
+/*
 const handleUpload = async () => {
   if (!file || !form.title) {
     setAlert({ type: 'error', message: 'Please select a file and enter a title' });
@@ -148,6 +149,7 @@ const handleUpload = async () => {
     setAlert({ type: 'error', message: err.message });
   }
 };
+*/
 
   return (
     <main className="upload-page">
