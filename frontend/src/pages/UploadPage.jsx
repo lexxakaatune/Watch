@@ -89,8 +89,8 @@ export default function UploadPage() {
       setAlert({ type: 'success', message: 'Upload successful! Processing...' });
       setTimeout(() => navigate('/creator'), 2000);
     } catch (err) {
-      Console.error(err);
-      setAlert({ type: 'error', message: err.message || err.response?.data?.error || 'Upload failed' });
+      Console.log(err);
+      setAlert({ type: 'error', message: JSON.stringify({ name: err.name, message: err.message, stack: err.stack }) });
     } finally {
       setUploading(false);
     }
