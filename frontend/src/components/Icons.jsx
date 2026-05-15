@@ -519,7 +519,7 @@ export const InfoIcon = ({ size = 24, color = 'currentColor', strokeWidth = 2, .
 
 
 
-const Icons = {
+  /* const Icons = {
   // Navigation & Core
   HomeIcon, SearchIcon, BellIcon, UserIcon, UsersIcon, SettingsIcon,
   MoreIcon, SendIcon, PlusIcon, FilterIcon, SortIcon,
@@ -546,4 +546,4 @@ const Icons = {
 };
 
 export default Icons;
-
+*/ 
