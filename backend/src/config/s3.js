@@ -4,7 +4,7 @@ const s3 = new AWS.S3({
   secretAccessKey: process.env.B2_SECRET_ACCESS_KEY,
   endpoint: process.env.B2_ENDPOINT,
   region: 'us-west-002',
-  s3ForcePathStyle: true,
+ //s3ForcePathStyle: true,
   signatureVersion: 'v4'
 });
 const bucket = process.env.B2_BUCKET;
