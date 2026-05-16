@@ -98,6 +98,14 @@ exports.dislikeVideo = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.streamVideo = async (req, res, next) => {
+  try {
+    const { key } = req.params;
+    const stream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
+    stream.pipe(res);
+  } catch (err) { next(err); }
+};
+
 exports.reportVideo = async (req, res, next) => {
   try {
     const { id } = req.params;

@@ -21,7 +21,7 @@ exports.directUpload = async (req, res, next) => {
     fs.unlinkSync(file.path);
 
     const baseName = key.split('/').pop().replace(/\.[^/.]+$/, '');
-    const b2Base = `https://f005.backblazeb2.com/file/${bucket}`;
+    const b2Base = `${process.env.B2_ENDPOINT}/${bucket}`;
     const videoUrl = `${b2Base}/${key}`;
     const thumbnail = `${b2Base}/thumbnails/${baseName}.jpg`;
 
