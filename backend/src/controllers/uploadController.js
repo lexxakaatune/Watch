@@ -20,8 +20,10 @@ exports.directUpload = async (req, res, next) => {
     
     fs.unlinkSync(file.path);
     
-    const videoUrl = `${process.env.B2_ENDPOINT}/${bucket}/${key}`;
-    const thumbnail = `${process.env.B2_ENDPOINT}/${bucket}/thumbnails/${file.originalname.replace(/\.[^/.]+$/, '')}.jpg`;
+    const b2Base = `https://f005.backblazeb2.com/file/${bucket}`;
+    const videoUrl = `${b2Base}/${key}`;
+    const thumbnail = `${b2Base}/thumbnails/${baseName}.jpg`;
+
     
     const video = await Video.create({
       title: req.body.title,
@@ -32,7 +34,8 @@ exports.directUpload = async (req, res, next) => {
       category: req.body.category || 'general',
       tags: req.body.tags?.split(',').map(t => t.trim()).filter(Boolean) || [],
       visibility: req.body.visibility || 'public',
-      status: 'processing'
+      // status: 'processing'
+      status: 'ready'
     });
     
     videoQueue.add('process-video', {
