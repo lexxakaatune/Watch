@@ -127,6 +127,9 @@ exports.streamVideo = async (req, res, next) => {
       const stream = s3.getObject({ Bucket: bucket, Key: key, Range: range }).createReadStream();
       stream.pipe(res);
     } else {
+      const headRes = await s3.headObject({ Bucket: bucket, Key: key }).promise();
+      res.setHeader('Content-Type', headRes.ContentType || 'video/mp4');
+      res.setHeader('Accept-Ranges', 'bytes');
       const stream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
       stream.pipe(res);
     }
