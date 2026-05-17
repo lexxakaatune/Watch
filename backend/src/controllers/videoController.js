@@ -101,6 +101,48 @@ exports.dislikeVideo = async (req, res, next) => {
 
 exports.streamVideo = async (req, res, next) => {
   try {
+    const key = req.params.key;
+    console.log('1. Key:', key);
+    
+    const headRes = await s3.headObject({ Bucket: bucket, Key: key }).promise();
+    console.log('2. Head success:', headRes.ContentType, headRes.ContentLength);
+    
+    const range = req.headers.range;
+    console.log('3. Range:', range);
+
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : undefined;
+      const fileSize = headRes.ContentLength;
+      const endByte = end || fileSize - 1;
+      const chunksize = (endByte - start) + 1;
+
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${endByte}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': headRes.ContentType,
+      });
+
+      const stream = s3.getObject({ Bucket: bucket, Key: key, Range: range }).createReadStream();
+      stream.pipe(res);
+    } else {
+      res.setHeader('Content-Type', headRes.ContentType || 'video/mp4');
+      res.setHeader('Accept-Ranges', 'bytes');
+      const stream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
+      stream.pipe(res);
+    }
+    console.log('4. Response sent');
+  } catch (err) { 
+    console.error('5. Stream error:', err.message);
+    next(err); 
+  }
+};
+
+/*
+exports.streamVideo = async (req, res, next) => {
+  try {
     const key = decodeURIComponent(req.params.key);
     const range = req.headers.range;
 
@@ -135,7 +177,7 @@ exports.streamVideo = async (req, res, next) => {
     }
   } catch (err) { next(err); }
 };
-
+*/
 
 exports.reportVideo = async (req, res, next) => {
   try {
