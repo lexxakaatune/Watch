@@ -101,7 +101,7 @@ exports.dislikeVideo = async (req, res, next) => {
 
 exports.streamVideo = async (req, res, next) => {
   try {
-    const key = req.params.key;
+    const key = decodeURIComponent(req.params.key);
     const range = req.headers.range;
     
     if (range) {
