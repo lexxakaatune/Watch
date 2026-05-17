@@ -102,6 +102,34 @@ exports.dislikeVideo = async (req, res, next) => {
 exports.streamVideo = async (req, res, next) => {
   try {
     const key = req.params.key;
+    console.log('Key:', key);
+    
+    const headRes = await s3.headObject({ Bucket: bucket, Key: key }).promise();
+    console.log('Head success:', headRes.ContentType, headRes.ContentLength);
+    
+    res.setHeader('Content-Type', headRes.ContentType || 'video/mp4');
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Content-Length', headRes.ContentLength);
+    
+    const stream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      next(err);
+    });
+    stream.pipe(res);
+    
+    console.log('Response sent');
+  } catch (err) { 
+    console.error('Controller error:', err.message);
+    next(err); 
+  }
+};
+
+
+/*
+exports.streamVideo = async (req, res, next) => {
+  try {
+    const key = req.params.key;
     console.log('1. Key:', key);
     
     const headRes = await s3.headObject({ Bucket: bucket, Key: key }).promise();
@@ -139,7 +167,7 @@ exports.streamVideo = async (req, res, next) => {
     next(err); 
   }
 };
-
+*/
 /*
 exports.streamVideo = async (req, res, next) => {
   try {
