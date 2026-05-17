@@ -42,6 +42,13 @@ export default function WatchPage() {
   }, [id, dispatch]);
 
   useEffect(() => {
+    if (videoRef.current && currentVideo?.videoKey) {
+      videoRef.current.load();
+    }
+  }, [currentVideo]);
+
+
+  useEffect(() => {
     if (currentVideo) {
       commentAPI.getComments(id).then(res => {
         setComments(res.data.data?.comments || []);
@@ -184,6 +191,8 @@ export default function WatchPage() {
               ref={videoRef}
               src={videoAPI.streamVideo(currentVideo.videoKey)}
               poster={currentVideo.thumbnail}
+              type="video/mp4" 
+              Preload="metadata"
               onClick={handlePlayPause}
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={handleLoadedMetadata}
