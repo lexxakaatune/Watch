@@ -3,7 +3,7 @@ const router = express.Router();
 const videoController = require('../controllers/videoController');
 const { authenticate } = require('../middleware/auth');
 
-router.get('/stream/:key', videoController.streamVideo);
+router.get('/stream/:key(*)', videoController.streamVideo);
 router.get('/feed', videoController.getFeed);
 router.get('/trending', videoController.getTrending);
 router.get('/:id', videoController.getVideo);

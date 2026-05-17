@@ -182,7 +182,7 @@ export default function WatchPage() {
           >
             <video
               ref={videoRef}
-              src={currentVideo.videoUrl}
+              src={videoAPI.streamVideo(currentVideo.videoKey)}
               poster={currentVideo.thumbnail}
               onClick={handlePlayPause}
               onTimeUpdate={handleTimeUpdate}

@@ -62,7 +62,7 @@ export default function Header() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex justify-between" style={{ height: 'var(--header-height)', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}>
+    <header className="fixed top-0 left-0 right-0 z-50 flex justify-between" style={{ z-index: '10', min-width: '100%', height: 'var(--header-height)', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)' }}>
       <div className="container h-full flex items-center justify-between gap-4">
         {/* Left */}
         <div className="flex items-center gap-3">

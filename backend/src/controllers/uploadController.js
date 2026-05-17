@@ -31,6 +31,7 @@ exports.directUpload = async (req, res, next) => {
       description: req.body.description || '',
       thumbnail,
       videoUrl,
+      videoKey: key,
       creator: req.user.id,
       category: req.body.category || 'general',
       tags: req.body.tags?.split(',').map(t => t.trim()).filter(Boolean) || [],

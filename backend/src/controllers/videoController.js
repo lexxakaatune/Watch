@@ -1,6 +1,7 @@
 const Video = require('../models/Video');
 const User = require('../models/User');
 const Comment = require('../models/Comment');
+const { s3, bucket } = require('../config/s3');
 
 exports.getFeed = async (req, res, next) => {
   try {
@@ -100,11 +101,35 @@ exports.dislikeVideo = async (req, res, next) => {
 
 exports.streamVideo = async (req, res, next) => {
   try {
-    const { key } = req.params;
-    const stream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
-    stream.pipe(res);
+    const key = req.params.key;
+    const range = req.headers.range;
+    
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : undefined;
+      
+      const headRes = await s3.headObject({ Bucket: bucket, Key: key }).promise();
+      const fileSize = headRes.ContentLength;
+      const endByte = end || fileSize - 1;
+      const chunksize = (endByte - start) + 1;
+      
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${endByte}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': headRes.ContentType,
+      });
+      
+      const stream = s3.getObject({ Bucket: bucket, Key: key, Range: range }).createReadStream();
+      stream.pipe(res);
+    } else {
+      const stream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
+      stream.pipe(res);
+    }
   } catch (err) { next(err); }
 };
+
 
 exports.reportVideo = async (req, res, next) => {
   try {

@@ -5,6 +5,7 @@ const videoSchema = new mongoose.Schema({
   description: { type: String, trim: true, maxlength: 5000 },
   thumbnail: { type: String, required: true },
   videoUrl: { type: String, required: true },
+  videoKey: { type: String, required: true},
   hlsUrl: { type: String, default: null },
   duration: { type: Number, default: 0 },
   resolutions: [{ resolution: String, url: String }],
