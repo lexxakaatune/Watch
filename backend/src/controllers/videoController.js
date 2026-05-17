@@ -103,7 +103,10 @@ exports.streamVideo = async (req, res, next) => {
   try {
     const key = decodeURIComponent(req.params.key);
     const range = req.headers.range;
-    
+
+    console.log('Raw key:', req.params.key);
+    console.log('Decoded key:', decodeURIComponent(req.params.key));
+
     if (range) {
       const parts = range.replace(/bytes=/, "").split("-");
       const start = parseInt(parts[0], 10);

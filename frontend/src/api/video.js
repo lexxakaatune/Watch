@@ -7,5 +7,5 @@ export const videoAPI = {
   likeVideo: (id) => api.post(`/videos/${id}/like`),
   dislikeVideo: (id) => api.post(`/videos/${id}/dislike`),
   reportVideo: (id, reason) => api.post(`/videos/${id}/report`, { reason }),
-  streamVideo: (key) => `${api.defaults.baseURL}/videos/stream/${encodeURIComponent(key)}`,
+  streamVideo: (key) => `${api.defaults.baseURL}/videos/stream/${key}`,
 };
