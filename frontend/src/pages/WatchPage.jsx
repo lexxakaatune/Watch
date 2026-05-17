@@ -187,6 +187,11 @@ export default function WatchPage() {
             onMouseMove={handleMouseMove}
             onMouseLeave={() => isPlaying && setShowControls(false)}
           >
+{alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
+<div style={{color:'white',fontSize:12,padding:10}}>
+  DEBUG: {videoAPI.streamVideo(currentVideo.videoKey)}
+</div>
+
             <video
               ref={videoRef}
               src={videoAPI.streamVideo(currentVideo.videoKey)}
