@@ -130,6 +130,8 @@ p {
 .gap-6 { gap: 1.5rem; }
 .gap-8 { gap: 2rem; }
 
+.z-40 { z-index: 40 }
+
 .grid { display: grid; }
 .grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
 .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
